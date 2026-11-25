@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071b1c">
+  <meta name="description" content="一张可以点亮、飘雪、拆礼物的圣诞电子贺卡。">
+  <title>圣诞快乐 · 一份冬日惊喜</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #fff8e9;
+      --muted: #d3d4c9;
+      --gold: #f5d58b;
+      --pine: #0c302b;
+      --deep: #071b1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 50% 108%, rgba(35, 91, 73, .52), transparent 49%),
+        radial-gradient(ellipse at 83% 19%, rgba(93, 73, 48, .18), transparent 27%),
+        linear-gradient(155deg, #102725 0%, #091d1e 49%, #061516 100%);
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    }
+
+    body::before, body::after {
+      position: fixed;
+      z-index: -1;
+      content: "";
+      pointer-events: none;
+    }
+
+    body::before {
+      inset: 0;
+      opacity: .25;
+      background-image: radial-gradient(#f9e6bb 0.65px, transparent .8px);
+      background-size: 41px 41px;
+      mask-image: linear-gradient(transparent, #000 25%, #000 80%, transparent);
+    }
+
+    body::after {
+      width: 42rem;
+      height: 42rem;
+      top: -30rem;
+      left: calc(50% - 21rem);
+      border-radius: 50%;
+      background: rgba(235, 190, 111, .08);
+      filter: blur(80px);
+    }
+
+    button { font: inherit; }
+
+    .page {
+      display: grid;
+      min-height: 100svh;
+      grid-template-rows: auto 1fr auto;
+      padding: 28px clamp(18px, 5vw, 72px) 20px;
+    }
+
+    .topbar, .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: min(1120px, 100%);
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #f3e7d0;
+      font-size: 12px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border: 1px solid rgba(245, 213, 139, .5);
+      border-radius: 50%;
+      color: var(--gold);
+      font-size: 14px;
+    }
+
+    .snow-toggle {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      gap: 9px;
+      padding: 0 13px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 999px;
+      color: #e6e5d9;
+      background: rgba(255, 255, 255, .045);
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+
+    .snow-toggle:hover { transform: translateY(-1px); border-color: rgba(245, 213, 139, .55); }
+    .snow-toggle:focus-visible, .action:focus-visible, .gift:focus-visible, .modal-close:focus-visible {
+      outline: 2px solid #ffe4a0;
+      outline-offset: 4px;
+    }
+
+    main {
+      display: grid;
+      place-items: center;
+      padding: 28px 0;
+    }
+
+    .card {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      width: min(1080px, 100%);
+      min-height: 570px;
+      grid-template-columns: .92fr 1.08fr;
+      overflow: hidden;
+      border: 1px solid rgba(251, 228, 177, .28);
+      border-radius: 20px;
+      background:
+        radial-gradient(ellipse at 75% 48%, rgba(29, 75, 58, .25), transparent 43%),
+        linear-gradient(112deg, rgba(14, 40, 35, .97), rgba(8, 29, 28, .96) 58%, rgba(8, 25, 26, .98));
+      box-shadow: 0 32px 100px rgba(0, 0, 0, .35), inset 0 0 0 7px rgba(245, 213, 139, .035);
+    }
+
+    .card::before {
+      position: absolute;
+      z-index: -1;
+      inset: 10px;
+      border: 1px solid rgba(245, 213, 139, .1);
+      border-radius: 13px;
+      content: "";
+      pointer-events: none;
+    }
+
+    .card-copy {
+      z-index: 1;
+      align-self: center;
+      padding: 66px 10px 68px clamp(30px, 6vw, 76px);
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 23px;
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before { width: 27px; height: 1px; background: var(--gold); content: ""; }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+      font-size: clamp(52px, 6.7vw, 84px);
+      font-weight: 500;
+      letter-spacing: .08em;
+      line-height: 1.13;
+      text-shadow: 0 4px 28px rgba(238, 195, 115, .12);
+    }
+
+    h1 span { display: block; color: var(--gold); }
+
+    .wish {
+      margin: 22px 0 0;
+      color: #f1e4cb;
+      font-family: Georgia, "Noto Serif SC", "Songti SC", serif;
+      font-size: clamp(17px, 2vw, 21px);
+      letter-spacing: .12em;
+    }
+
+    .message {
+      max-width: 350px;
+      margin: 17px 0 30px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.95;
+    }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+    .action {
+      min-height: 47px;
+      padding: 0 20px;
+      border: 1px solid rgba(245, 213, 139, .62);
+      border-radius: 999px;
+      color: #1b2b23;
+      background: linear-gradient(135deg, #f8dfa2, #dfb966);
+      box-shadow: 0 7px 25px rgba(232, 190, 104, .16);
+      cursor: pointer;
+      transition: transform .2s, box-shadow .2s, filter .2s;
+    }
+
+    .action:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(232, 190, 104, .28); filter: brightness(1.05); }
+    .action.secondary { color: #f2e7d4; background: rgba(255, 255, 255, .045); box-shadow: none; }
+    .action.secondary:hover { border-color: var(--gold); }
+
+    .art {
+      position: relative;
+      display: grid;
+      min-height: 520px;
+      align-items: end;
+      justify-items: center;
+      overflow: hidden;
+      padding: 22px 10px 0;
+    }
+
+    .art::before {
+      position: absolute;
+      width: min(480px, 95%);
+      aspect-ratio: 1;
+      top: 8%;
+      right: -3%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(247, 211, 142, .11), rgba(247, 211, 142, .035) 42%, transparent 70%);
+      content: "";
+    }
+
+    .moon {
+      position: absolute;
+      top: 11%;
+      right: 20%;
+      width: 68px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #f5dfad;
+      box-shadow: 0 0 20px rgba(255, 224, 169, .36), 0 0 70px rgba(255, 224, 169, .17);
+    }
+
+    .moon::after {
+      position: absolute;
+      width: 62px;
+      height: 62px;
+      top: -8px;
+      left: 18px;
+      border-radius: 50%;
+      background: #0b2725;
+      content: "";
+    }
+
+    .star {
+      position: absolute;
+      color: #ffedc5;
+      font-size: 14px;
+      opacity: .8;
+      animation: twinkle 3s ease-in-out infinite alternate;
+    }
+    .star.one { top: 18%; left: 20%; }
+    .star.two { top: 29%; right: 11%; font-size: 10px; animation-delay: -1.6s; }
+    .star.three { top: 13%; left: 42%; font-size: 9px; animation-delay: -.7s; }
+    .star.four { top: 39%; left: 12%; font-size: 10px; animation-delay: -2s; }
+
+    .landscape {
+      position: absolute;
+      z-index: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 36%;
+    }
+
+    .tree {
+      position: relative;
+      z-index: 1;
+      width: min(450px, 100%);
+      height: auto;
+      margin-bottom: 7%;
+      overflow: visible;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .22));
+    }
+
+    .tree .lights { opacity: .63; transition: opacity .45s, filter .45s; }
+    .card.lit .tree .lights { opacity: 1; filter: drop-shadow(0 0 7px #ffe6a0); }
+    .card.lit .tree .bulb { animation: sparkle 1.7s ease-in-out infinite alternate; }
+    .card.lit .tree .bulb:nth-child(3n) { animation-delay: -.8s; }
+
+    .gift {
+      position: absolute;
+      z-index: 2;
+      right: 11%;
+      bottom: 14%;
+      display: grid;
+      width: 93px;
+      height: 83px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      animation: bob 3s ease-in-out infinite;
+      transition: filter .2s, transform .2s;
+    }
+
+    .gift:hover { z-index: 3; transform: scale(1.12) rotate(-3deg); filter: drop-shadow(0 0 15px rgba(255, 219, 142, .55)); }
+    .gift svg { width: 100%; height: 100%; overflow: visible; }
+    .gift-hint {
+      position: absolute;
+      right: 0;
+      bottom: -27px;
+      width: max-content;
+      color: rgba(255, 241, 211, .78);
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .footer {
+      justify-content: center;
+      gap: 8px;
+      color: rgba(235, 226, 205, .53);
+      font-size: 11px;
+      letter-spacing: .1em;
+    }
+    .footer span { color: #d9b970; }
+
+    #snow {
+      position: fixed;
+      z-index: 5;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    dialog {
+      width: min(420px, calc(100% - 36px));
+      padding: 0;
+      border: 1px solid rgba(245, 213, 139, .45);
+      border-radius: 18px;
+      color: var(--ink);
+      background: linear-gradient(145deg, #15342f, #0b2222);
+      box-shadow: 0 24px 90px rgba(0, 0, 0, .6), 0 0 60px rgba(245, 213, 139, .08);
+    }
+
+    dialog::backdrop { background: rgba(2, 12, 13, .72); backdrop-filter: blur(6px); }
+    .modal-content { position: relative; padding: 38px 35px 34px; text-align: center; }
+    .modal-icon { display: block; margin-bottom: 15px; color: var(--gold); font-size: 38px; }
+    .modal-content h2 { margin: 0 0 12px; font-family: Georgia, "Noto Serif SC", "Songti SC", serif; font-size: 29px; font-weight: 500; }
+    .modal-content p { margin: 0 0 24px; color: #d8d8ca; font-size: 14px; line-height: 1.9; }
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 50%;
+      color: #eee5d3;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    @keyframes twinkle { from { opacity: .36; transform: scale(.8); } to { opacity: 1; transform: scale(1.18); } }
+    @keyframes sparkle { from { opacity: .52; } to { opacity: 1; } }
+    @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+
+    @media (max-width: 760px) {
+      .page { padding: 18px 14px 15px; }
+      .brand { font-size: 10px; letter-spacing: .1em; }
+      .snow-toggle { min-height: 35px; padding: 0 11px; font-size: 12px; }
+      main { padding: 21px 0; }
+      .card { min-height: unset; grid-template-columns: 1fr; border-radius: 17px; }
+      .card-copy { padding: 44px 30px 0; text-align: center; }
+      .eyebrow { justify-content: center; margin-bottom: 16px; }
+      h1 { font-size: clamp(54px, 14vw, 77px); }
+      .wish { margin-top: 15px; font-size: 17px; }
+      .message { max-width: 340px; margin: 12px auto 19px; font-size: 13px; }
+      .actions { justify-content: center; }
+      .action { min-height: 43px; padding: 0 17px; font-size: 13px; }
+      .art { min-height: clamp(285px, 77vw, 380px); margin-top: 0; }
+      .tree { width: min(360px, 95%); margin-bottom: 4%; }
+      .moon { top: 9%; right: 20%; width: 52px; }
+      .moon::after { width: 48px; height: 48px; left: 13px; }
+      .gift { right: 7%; bottom: 14%; width: 75px; height: 70px; }
+      .landscape { height: 39%; }
+    }
+
+    @media (max-width: 390px) {
+      .card-copy { padding-right: 21px; padding-left: 21px; }
+      .brand { gap: 7px; }
+      .brand-mark { width: 25px; height: 25px; }
+      .footer { font-size: 10px; }
+      .gift { right: 3%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="snow" aria-hidden="true"></canvas>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✦</span> A LITTLE WINTER MAGIC</div>
+      <button class="snow-toggle" id="snowToggle" type="button" aria-pressed="true">
+        <span aria-hidden="true">❄</span><span id="snowLabel">雪花飘落中</span>
+      </button>
+    </header>
+
+    <main>
+      <article class="card" id="card">
+        <section class="card-copy">
+          <p class="eyebrow">Merry Christmas · 2026</p>
+          <h1>圣诞<span>快乐</span></h1>
+          <p class="wish">愿冬日的温柔，刚好都属于你。</p>
+          <p class="message">愿你拆开的每一份礼物都有惊喜，走过的每一段路都有暖意。把这份闪闪发光的祝福，送给特别的你。</p>
+          <div class="actions">
+            <button class="action" id="lightsToggle" type="button" aria-pressed="false">✧ 点亮圣诞树</button>
+            <button class="action secondary" id="wishButton" type="button">收下祝福</button>
+          </div>
+        </section>
+
+        <section class="art" aria-label="月光下的圣诞树与礼物">
+          <span class="moon" aria-hidden="true"></span>
+          <span class="star one" aria-hidden="true">✦</span>
+          <span class="star two" aria-hidden="true">✧</span>
+          <span class="star three" aria-hidden="true">✦</span>
+          <span class="star four" aria-hidden="true">✧</span>
+          <svg class="tree" viewBox="0 0 440 500" role="img" aria-label="挂满彩灯的圣诞树">
+            <defs>
+              <linearGradient id="branch" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#327456"/>
+                <stop offset=".48" stop-color="#17513c"/>
+                <stop offset="1" stop-color="#0b3028"/>
+              </linearGradient>
+              <linearGradient id="trunk" x1="0" x2="1">
+                <stop stop-color="#76503a"/><stop offset="1" stop-color="#3d2c25"/>
+              </linearGradient>
+              <radialGradient id="topStar">
+                <stop stop-color="#fff5c9"/><stop offset=".55" stop-color="#f8d474"/><stop offset="1" stop-color="#d89e48"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="220" cy="461" rx="151" ry="16" fill="#d9e8dc" opacity=".17"/>
+            <path d="M197 407h46v59h-46z" fill="url(#trunk)"/>
+            <path d="M220 25l10 24 26 2-20 16 7 25-23-14-23 14 7-25-20-16 26-2z" fill="url(#topStar)" stroke="#fff0b7" stroke-width="1.5"/>
+            <path d="M220 69L141 175h45l-82 104h54l-94 113h312l-94-113h54l-82-104h45z" fill="url(#branch)" stroke="#4b8c68" stroke-opacity=".48" stroke-width="2"/>
+            <path d="M221 84l-52 90m52-60l59 80m-93 2l-49 61m81-66l99 85m-142 5l-71 82m113-79l113 88" fill="none" stroke="#78a77d" stroke-opacity=".18" stroke-width="7" stroke-linecap="round"/>
+            <path d="M180 144c43 19 63 17 89 0m-152 87c52 24 142 30 207 1m-246 89c85 35 180 38 282 1" fill="none" stroke="#d7b96b" stroke-opacity=".8" stroke-width="2.3" stroke-dasharray="2 5"/>
+            <g class="lights">
+              <g fill="#f3d37e">
+                <circle class="bulb" cx="187" cy="124" r="4"/><circle class="bulb" cx="248" cy="141" r="4"/>
+                <circle class="bulb" cx="151" cy="205" r="4"/><circle class="bulb" cx="221" cy="217" r="4"/><circle class="bulb" cx="290" cy="209" r="4"/>
+                <circle class="bulb" cx="122" cy="278" r="4"/><circle class="bulb" cx="183" cy="293" r="4"/><circle class="bulb" cx="255" cy="295" r="4"/><circle class="bulb" cx="322" cy="278" r="4"/>
+                <circle class="bulb" cx="99" cy="359" r="4"/><circle class="bulb" cx="160" cy="369" r="4"/><circle class="bulb" cx="225" cy="377" r="4"/><circle class="bulb" cx="283" cy="366" r="4"/><circle class="bulb" cx="343" cy="352" r="4"/>
+              </g>
+              <g fill="#e88a72">
+                <circle cx="224" cy="121" r="7"/><circle cx="177" cy="235" r="7"/><circle cx="271" cy="258" r="7"/>
+                <circle cx="140" cy="328" r="7"/><circle cx="309" cy="324" r="7"/>
+              </g>
+              <g fill="#e6d5aa">
+                <circle cx="190" cy="182" r="5"/><circle cx="252" cy="187" r="5"/><circle cx="211" cy="330" r="5"/>
+              </g>
+            </g>
+          </svg>
+          <svg class="landscape" viewBox="0 0 700 190" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 105Q100 56 220 110T460 89T700 101V190H0Z" fill="#163a32"/>
+            <path d="M0 143Q110 103 237 143T480 127T700 143V190H0Z" fill="#dce8df"/>
+            <path d="M0 161Q145 135 284 162T540 151T700 164V190H0Z" fill="#eef0e5" opacity=".8"/>
+            <g fill="#102b26">
+              <path d="M37 106l22-48 21 48h-13v36H50v-36z"/><path d="M594 106l25-58 24 58h-15v41h-20v-41z"/>
+              <path d="M550 120l18-38 18 38h-11v30h-15v-30z"/>
+            </g>
+            <g fill="#ffd58d">
+              <rect x="614" y="106" width="4" height="5" rx="2"/><rect x="571" y="113" width="4" height="5" rx="2"/>
+              <rect x="58" y="100" width="4" height="5" rx="2"/>
+            </g>
+          </svg>
+          <button class="gift" id="giftButton" type="button" aria-label="点击拆开圣诞礼物">
+            <svg viewBox="0 0 100 90" aria-hidden="true">
+              <ellipse cx="50" cy="78" rx="42" ry="7" fill="#234337" opacity=".3"/>
+              <path d="M17 37h66v40H17z" fill="#a83c36"/>
+              <path d="M45 37h11v40H45z" fill="#e3bd70"/>
+              <path d="M12 30h76v14H12z" rx="3" fill="#c74c3e"/>
+              <path d="M45 30h11v14H45z" fill="#f1d38b"/>
+              <path d="M50 30C19 30 27 9 40 14c7 3 10 16 10 16zm0 0c31 0 23-21 10-16-7 3-10 16-10 16z" fill="none" stroke="#f3d58c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 47h60" stroke="#e87b61" stroke-width="2" opacity=".5"/>
+            </svg>
+            <span class="gift-hint">点我拆礼物</span>
+          </button>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">MADE WITH <span>✦</span> FOR YOUR CHRISTMAS</footer>
+  </div>
+
+  <dialog id="surprise" aria-labelledby="surpriseTitle">
+    <div class="modal-content">
+      <button class="modal-close" id="closeDialog" type="button" aria-label="关闭">×</button>
+      <span class="modal-icon" aria-hidden="true">✧</span>
+      <h2 id="surpriseTitle">礼物里有一份祝福</h2>
+      <p id="surpriseMessage">愿新的一年，有人惦记，有所期待；每个平凡日子，都藏着小小的欢喜。</p>
+      <button class="action" id="dialogDone" type="button">把温暖收好</button>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById("snow");
+      const context = canvas.getContext("2d");
+      const snowToggle = document.getElementById("snowToggle");
+      const snowLabel = document.getElementById("snowLabel");
+      const card = document.getElementById("card");
+      const lightsToggle = document.getElementById("lightsToggle");
+      const surprise = document.getElementById("surprise");
+      const surpriseMessage = document.getElementById("surpriseMessage");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const wishes = [
+        "愿新的一年，有人惦记，有所期待；每个平凡日子，都藏着小小的欢喜。",
+        "愿你眼里有光，心里有爱，身边有温暖；所有美好，都在来的路上。",
+        "愿冬天的雪替我拥抱你，愿每一个明天，都比今天多一点快乐。"
+      ];
+      let flakes = [];
+      let snowing = true;
+      let width = 0;
+      let height = 0;
+      let animationRunning = false;
+
+      function resize() {
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.round(width * ratio);
+        canvas.height = Math.round(height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const count = Math.min(120, Math.floor(width / 9));
+        flakes = Array.from({ length: count }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 2.2 + .6,
+          speed: Math.random() * .65 + .3,
+          drift: Math.random() * .55 - .275,
+          opacity: Math.random() * .55 + .22
+        }));
+        drawSnow();
+      }
+
+      function drawSnow() {
+        context.clearRect(0, 0, width, height);
+        if (snowing) {
+          for (const flake of flakes) {
+            context.beginPath();
+            context.fillStyle = `rgba(255, 248, 230, ${flake.opacity})`;
+            context.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+            context.fill();
+            if (!reducedMotion) {
+              flake.y += flake.speed;
+              flake.x += flake.drift + Math.sin(flake.y * .012) * .22;
+              if (flake.y > height + 5) { flake.y = -5; flake.x = Math.random() * width; }
+              if (flake.x < -5) flake.x = width + 5;
+              if (flake.x > width + 5) flake.x = -5;
+            }
+          }
+        }
+      }
+
+      function animateSnow() {
+        drawSnow();
+        if (snowing && !reducedMotion) window.requestAnimationFrame(animateSnow);
+        else animationRunning = false;
+      }
+
+      function startSnowAnimation() {
+        if (snowing && !reducedMotion && !animationRunning) {
+          animationRunning = true;
+          window.requestAnimationFrame(animateSnow);
+        }
+      }
+
+      window.addEventListener("resize", resize, { passive: true });
+      resize();
+      startSnowAnimation();
+
+      snowToggle.addEventListener("click", () => {
+        snowing = !snowing;
+        snowToggle.setAttribute("aria-pressed", String(snowing));
+        snowLabel.textContent = snowing ? "雪花飘落中" : "开启飘雪";
+        drawSnow();
+        startSnowAnimation();
+      });
+
+      lightsToggle.addEventListener("click", () => {
+        const lit = card.classList.toggle("lit");
+        lightsToggle.setAttribute("aria-pressed", String(lit));
+        lightsToggle.textContent = lit ? "✧ 熄灭圣诞树" : "✧ 点亮圣诞树";
+      });
+
+      function openSurprise() {
+        surpriseMessage.textContent = wishes[Math.floor(Math.random() * wishes.length)];
+        if (typeof surprise.showModal === "function") surprise.showModal();
+        else surprise.setAttribute("open", "");
+      }
+
+      function closeSurprise() {
+        if (typeof surprise.close === "function" && surprise.open) surprise.close();
+        else surprise.removeAttribute("open");
+      }
+
+      document.getElementById("giftButton").addEventListener("click", openSurprise);
+      document.getElementById("wishButton").addEventListener("click", openSurprise);
+      document.getElementById("closeDialog").addEventListener("click", closeSurprise);
+      document.getElementById("dialogDone").addEventListener("click", closeSurprise);
+      surprise.addEventListener("click", (event) => {
+        if (event.target === surprise) closeSurprise();
+      });
+    })();
+  </script>
+</body>
+</html>
